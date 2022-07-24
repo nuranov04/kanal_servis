@@ -1,0 +1,65 @@
+version: '2.2'
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
+    ports:
+      - "5433:5432"
+
+  web:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: bash -c "python manage.py migrate && python manage.py runserver 127.0.0.1:8000"
+    ports:
+      - '8000:8000'
+    environment:
+      - POSTGRES_NAME=test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
+    links:
+      - redis
+    depends_on:
+      - db
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis_server
+    ports:
+      - '6380:6379'
+    expose:
+      - 6379
+
+
+  celery:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: celery-worker
+    command: celery -A test_for_company_kanalservise worker -l INFO
+    volumes:
+      - .:/project
+    depends_on:
+      - redis
+      - db
+    restart: always
+
+  celery-beat:
+    build: .
+    command: celery -A test_for_company_kanalservise beat -l INFO
+    depends_on:
+      - redis
+      - db
+      - celery
+    restart: always
+
+
+volumes:
+  postgres_data:
+  media_volume:
+  static_volume:
