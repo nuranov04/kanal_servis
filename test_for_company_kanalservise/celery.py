@@ -16,14 +16,13 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
 app.conf.beat_schedule = {
-    'update-create-every-5-minutes': {
+    'update-create-every-5-minutes': {  # создание таска создание или обновления заказа каждые 5 минут
         'task': 'main.tasks.update_or_create_order',
         'schedule': 360,
     },
-    'send_messages': {
+    'send_messages': {  # отправка сообщения о пропущенном дедлайне  в телеграмм группу
         'task': 'main.tasks.send_message',
         'schedule': 4800
     }
 }
 app.conf.timezone = 'Asia/Bishkek'
-
